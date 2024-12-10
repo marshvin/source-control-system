@@ -20,16 +20,6 @@ A Git-like distributed version control system implemented in Python. This system
 - **Simplified Ignore Pattern Matching**: 
   - The system implements a straightforward method for ignoring files and directories using a `.giclone/ignore` file. This allows users to easily specify which files should not be tracked, similar to `.gitignore` in Git, enhancing user experience by reducing clutter in version control.
 
-- **Lightweight and Local-Only**: 
-  - Designed for local repositories, this system provides essential version control functionalities without the complexity of network operations. This makes it ideal for small projects or personal use where simplicity and speed are paramount.
-
-- **Commit History Management**: 
-  - The system maintains a linked history of commits, allowing users to view their project’s evolution over time. The `log` function provides a clear and concise output of commit messages and associated files, making it easy to track changes.
-
-- **Branching and Merging**: 
-  - Users can create and manage branches effortlessly, enabling parallel development. The merge functionality includes basic conflict detection, allowing users to handle changes from different branches effectively.
-
-### Design Choices
 
 - **Content-Addressable Storage**: 
   - Files are stored as content-addressable objects using SHA-256 hashing. This ensures data integrity and allows for efficient storage and retrieval of file contents, as files are uniquely identified by their content rather than their names.
@@ -38,20 +28,8 @@ A Git-like distributed version control system implemented in Python. This system
   - The system is structured into distinct components (e.g., `main.py`, `repository.py`, `utils.py`), promoting maintainability and scalability. Each module has a clear responsibility, making it easier to extend functionality in the future.
 
 - **User-Friendly CLI**: 
-  - The command-line interface is designed to be intuitive, with straightforward commands for initializing repositories, staging files, committing changes, and managing branches. This lowers the barrier to entry for users unfamiliar with version control systems.
+  - The command-line interface is designed to be intuitive, with straightforward commands similar to the Git commands for initializing repositories, staging files, committing changes, and managing branches. This lowers the barrier to entry for users unfamiliar with version control systems.
 
-### Future Enhancements
-
-- **Interactive Conflict Resolution**: 
-  - Future versions may include interactive tools for resolving merge conflicts, providing users with a more guided experience during complex merges.
-
-- **Network Functionality**: 
-  - Plans to implement remote repository support could enhance collaboration features, allowing users to share their work with others seamlessly.
-
-- **Advanced Ignore Patterns**: 
-  - Expanding the ignore pattern matching to support more complex rules (e.g., wildcards) could provide users with greater flexibility in managing their files.
-
-By focusing on these highlights, the documentation not only informs users about the functionality of the version control system but also showcases its unique advantages and potential for future development.
 
 ## Installation
 
