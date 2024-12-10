@@ -4,51 +4,61 @@ import hashlib
 import shutil
 import pickle
 from typing import Dict, List, Optional
+from utils import load_ignore_patterns, should_ignore
 
 class Repository:
+    """
+    Core class that handles all version control operations.
+    Implements a Git-like structure with:
+    - Object storage for content-addressable files
+    - Staging area for pending changes
+    - Branch management with refs/heads structure
+    - Commit history as a linked list of commits
+    """
     def __init__(self, path: str):
         """Initialize a new repository or load an existing one."""
         self.path = os.path.abspath(path)
         self.repo_dir = os.path.join(path, '.giclone')
         
         if not os.path.exists(self.repo_dir):
+            print(f"Creating directory: {self.repo_dir}")
             os.makedirs(self.repo_dir)
-            # Initialize repository structure
+            
+            print("Creating objects directory")
             os.makedirs(os.path.join(self.repo_dir, 'objects'))
+            
+            print("Creating refs directory")
             os.makedirs(os.path.join(self.repo_dir, 'refs'))
+            
+            print("Creating heads directory")
+            os.makedirs(os.path.join(self.repo_dir, 'refs', 'heads'))  # Ensure heads directory exists
+            
+            print("Creating branches directory")
             os.makedirs(os.path.join(self.repo_dir, 'branches'))
             
-            # Create initial HEAD
+            print("Creating initial HEAD")
             with open(os.path.join(self.repo_dir, 'HEAD'), 'w') as f:
                 f.write('refs/heads/main')
+            
+            print("Creating initial branch file")
+            with open(os.path.join(self.repo_dir, 'refs', 'heads', 'main'), 'w') as f:
+                f.write('')  # Create an empty file for the main branch
             
             # Create .gitignore
             with open(os.path.join(self.repo_dir, 'ignore'), 'w') as f:
                 f.write('.giclone\n')
         
         # Load ignore patterns
-        self.ignore_patterns = self._load_ignore_patterns()
-    
-    def _load_ignore_patterns(self) -> List[str]:
-        """Load .gitignore patterns."""
-        ignore_file = os.path.join(self.repo_dir, 'ignore')
-        if os.path.exists(ignore_file):
-            with open(ignore_file, 'r') as f:
-                return [line.strip() for line in f if line.strip() and not line.startswith('#')]
-        return []
-    
-    def should_ignore(self, path: str) -> bool:
-        """Check if a file should be ignored."""
-        relative_path = os.path.relpath(path, self.path)
-        return any(
-            pattern in relative_path or 
-            relative_path.startswith(pattern) or 
-            relative_path.endswith(pattern)
-            for pattern in self.ignore_patterns
-        )
-    
+        self.ignore_patterns = load_ignore_patterns(self.repo_dir)
     def add(self, paths: List[str]):
-        """Stage files for commit."""
+        """
+        Stage files for commit.
+        Implementation strategy:
+        1. Use content-addressable storage with SHA-256 hashing
+        2. Store actual file content in objects directory
+        3. Maintain staging area as a dictionary of path -> hash mappings
+        4. Handle ignored files based on .giclone/ignore patterns
+        """
         staging_area = os.path.join(self.repo_dir, 'index')
         staged_files = {}
         
@@ -61,7 +71,7 @@ class Repository:
             full_path = os.path.join(self.path, path)
             
             # Skip ignored files
-            if self.should_ignore(full_path):
+            if should_ignore(full_path, self.path, self.ignore_patterns):
                 print(f"Ignoring {path}")
                 continue
             
@@ -81,7 +91,16 @@ class Repository:
             pickle.dump(staged_files, f)
     
     def commit(self, message: str):
-        """Create a commit with staged files."""
+        """
+        Create a commit with staged files.
+        Design decisions:
+        1. Commits are immutable snapshots of staged files
+        2. Each commit stores:
+           - Complete file list (not just changes)
+           - Parent commit hash (for history tracking)
+           - Commit message
+        3. Branch refs are updated to point to new commit
+        """
         staging_area = os.path.join(self.repo_dir, 'index')
         
         if not os.path.exists(staging_area):
@@ -246,7 +265,15 @@ class Repository:
             return f.read().strip()
     
     def merge(self, branch_name: str):
-        """Merge another branch into the current branch."""
+        """
+        Merge another branch into the current branch.
+        Merge strategy:
+        1. Compare file hashes between branches
+        2. Auto-merge when no conflicts exist
+        3. Detect conflicts when same file has different hashes
+        4. Create merge commit after successful merge
+        Note: Does not handle conflict resolution - user must resolve manually
+        """
         # Get commit hashes
         current_commit = self.get_head_commit()
         branch_commit = self._get_branch_commit(branch_name)
@@ -281,26 +308,3 @@ class Repository:
         # Create merge commit
         self.commit(f"Merge branch '{branch_name}'")
         return True
-
-# Example usage
-def main():
-    # Create a repository
-    repo = Repository('/path/to/project')
-    
-    # Add files
-    repo.add(['file1.txt', 'file2.py'])
-    
-    # Commit
-    repo.commit("Initial commit")
-    
-    # Create a branch
-    repo.branch('feature')
-    
-    # Checkout branch
-    repo.checkout('feature')
-    
-    # View log
-    repo.log()
-
-if __name__ == '__main__':
-    main()
