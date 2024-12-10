@@ -55,24 +55,23 @@ python main.py log
 ```
 
 ## Project Structure
-source-control-system/
-├── main.py          # CLI interface
-├── repository.py    # Core repository functionality
-└── utils.py # Utility functions
-
+- `source-control-system/`
+  - `main.py`: CLI interface
+  - `repository.py`: Core repository functionality
+  - `utils.py`: Utility functions
 
 ## Implementation Details
 
 ### Repository Structure
 The system creates a `.giclone` directory with the following structure:
 
-giclone/
-├── objects/ # Stores file contents and commits
-├── refs/
-│ └── heads/ # Branch references
-├── branches/ # Branch information
-├── HEAD # Points to current branch
-└── ignore # Ignore patterns file
+- `giclone/`
+  - `objects/`: Stores file contents and commits
+  - `refs/`
+    - `heads/`: Branch references
+  - `branches/`: Branch information
+  - `HEAD`: Points to current branch
+  - `ignore`: Ignore patterns file
 
 
 ### Key Components
